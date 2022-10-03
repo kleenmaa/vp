@@ -1,6 +1,6 @@
 <?php
 	// loen sisse konfiguratsioonifaili
-	require_once "../config.php";
+	require_once "../../config.php";
 	//echo $server_host;
 	$author_name = "Katriin Liselle Eenmaa";
 	//echo $author_name;
@@ -12,6 +12,7 @@
 	$part_of_day = "suvaline hetk";
 	//   == on võrdne  != pole võrdne  <  >  <=  >=
 	// and  or
+	$photo_number = 1;
 
 
 	if($weekday_now <=5) {
