@@ -1,19 +1,8 @@
 <?php
-	require_once "fnc_gallery.php";
 	//algatan sessiooni
-	//session_start();
-	require_once "classes/SessionManager.class.php";
-	SessionManager::sessionStart("vp", 0, "~eenmkatr/vp/", "greeny.cs.tlu.ee");
+	session_start();
 	//loen sisse konfiguratsioonifaili
-	require_once "fnc_user.php";
-	/* require_once "classes/Example.class.php";
-	$our_example = new Example(3);
-	$my_example = new Example(5);
-	echo $our_example->known_value ."<br>";
-	$my_example->add();
-	unset($our_example);
-	unset($my_example);
-	//echo $ */
+	require_once "fnc_user.php"
 	// loen sisse konfiguratsioonifaili
 	//require_once "../../config.php";
 	//echo $server_host;
@@ -107,6 +96,49 @@
 
 	//kasutajaga sisse logimine ja selle õiguste kontrollimine
 	//$email = null;
+	$password = null;
+
+
+	//muutujad võimalike veateadetega
+	$email_error = null;
+	$password_error = null;
+	$login_error = null;
+
+	if($_SERVER["REQUEST_METHOD"] == "POST") {
+		if(isset($_POST["user_data_submit"])) {
+
+			$email = $_POST["email_input"];
+			$password = $_POST["password_input"];
+
+
+            if(empty($email_error)){
+				$conn = new mysqli($server_host, $server_user_name, $server_password, $database);
+				$conn->set_charset("utf8");
+				$stmt = $conn->prepare("SELECT password FROM vp_users WHERE email = ?");
+				echo $conn->error;
+
+				//määrata andmetüübid i - integer(täisarv) d - decimal(murdarv) s - string(tekst)
+				$stmt->bind_param("s", $email);
+				$stmt->bind_result($password_from_db);
+				$stmt->execute();
+				if($stmt->fetch()) {
+					if(password_verify($password, $password_from_db)) {
+						$stmt->close();
+						$conn->close();
+						header("Location: home.php");
+						exit();
+					} else {
+						$login_error = "Sisselogimine ebaõnnestus, salasõna või meiliaadress oli ebakorrektne!";
+					}
+				} else {
+					$login_error = "Sisselogimine ebaõnnestus, salasõna või meiliaadress oli ebakorrektne!";
+				}
+
+				$stmt->close();
+				$conn->close();
+			}
+		}
+	}
 	//loetlen lubatud failitüübid (jpg png)
 	$allowed_photo_types = ["image/jpeg", "image/png"];
 	$photo_files = [];
@@ -212,11 +244,6 @@
 		<input type="submit" name="login_submit" value="Logi sisse"><span><strong><?php echo $login_error; ?></strong></span>
 	</form>
 	<p><a href="add_user.php">Loo omale kasutaja</a></p>
-	<hr>
-	<h2>Viimati postitatud avalik foto</h2>
-	<div class="gallery">
-	<?php echo show_latest_public_photo(); ?>
-	</div>
 	<hr>
 	<p>Õppetöö toimus <a href="https://www.tlu.ee">Tallinna Ülikoolis</a>, Digitehnoloogiate instituudis.</p>
 	<p>Lehe avamise hetk: <?php echo $weekday_names_et[$weekday_now - 1] .", " .$full_time_now; ?>.</p>

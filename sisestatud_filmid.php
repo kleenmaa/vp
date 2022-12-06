@@ -1,13 +1,29 @@
 <?php
+	//session_start();
+	require_once "classes/SessionManager.class.php";
+	SessionManager::sessionStart("vp", 0, "~eenmkatr/vp/", "greeny.cs.tlu.ee");
+	if(!isset($_SESSION["user_id"])){
+		//jõuga viiakse page.php lehele
+		header("Location: page.php");
+		exit();
+	}
+
+	//logime välja
+	if(isset($_GET["logout"])){
+		session_destroy();
+		header("Location: page.php");
+		exit();
+	}
+
 	require_once "../../config.php";
 
-	$tile = null;
-	$year = null;
-	$duration = null;
+	$title = null;
 	$genre = null;
 	$studio = null;
 	$director = null;
-	
+	$year = date("Y");
+	$duration = 60;
+
 	$title_error = null;
 	$year_error = null;
 	$duration_error = null;
@@ -15,7 +31,7 @@
 	$studio_error = null;
 	$director_error = null;
 	//tegeleme päevale antud hinde ja kommentaariga
-	
+
 	if(isset($_POST["film_submit"])){
 		if(isset($_POST["title_input"]) and !empty($_POST["title_input"])) {
 			$title = $_POST["title_input"];
@@ -64,11 +80,16 @@
 			//seome SQL päringu päris andmetega
 			//määrata andmetüübid i - integer(täisarv) d - decimal(murdarv) s - string(tekst)
 			$stmt->bind_param("siisss", $title, $year, $duration, $genre, $studio, $director);
-			$stmt->execute();
+			if ($stmt->execute()) {
+				$title = null;
+				$genre = null;
+				$studio = null;
+				$director = null;
+				$year = date("Y");
+				$duration = 60;
+			}
 			echo $stmt->error;
-			//aitab sellest käsust $stmt->close();
 			$stmt->close();
-			//sulgeme andmebaasiühenduse
 			$conn->close();
 		}
 	}
@@ -81,17 +102,18 @@
 	<title>Katriin Liselle Eenmaa, veebiprogrammeerimine</title>
 </head>
 <body>
+<h1>Katriin Liselle Eenmaa, filmide sisestamine</h1>
 <form method="POST">
 	<label for="title_input">Filmi pealkiri</label>
   <input type="text" name="title_input" id="title_input" placeholder="filmi pealkiri" value="<?php echo $title; ?>">
 	<span><?php echo $title_error; ?></span>
   <br>
   <label for="year_input">Valmimisaasta</label>
-  <input type="number" name="year_input" id="year_input" min="1912" value="<?php echo $year; ?>">
+  <input type="number" name="year_input" id="year_input" placeholder="filmi valmimisaasta" min="1912" value="<?php echo $year; ?>">
 	<span><?php echo $year_error; ?></span>
   <br>
   <label for="duration_input">Kestus</label>
-  <input type="number" name="duration_input" id="duration_input" min="1" value="60" max="600" value="<?php echo $duration; ?>">
+  <input type="number" name="duration_input" id="duration_input" min="1" value="<?php echo $duration; ?>" max="600" value="<?php echo $duration; ?>">
 	<span><?php echo $duration_error; ?></span>
   <br>
   <label for="genre_input">Filmi žanr</label>
@@ -108,5 +130,8 @@
 	<br>
   <input type="submit" name="film_submit" value="Salvesta">
 </form>
+<ul>
+	<li>Logi <a href="?logout=1">välja</a></li>
+</ul>
 </body>
 </html<
